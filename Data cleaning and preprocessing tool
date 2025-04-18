@@ -1,1 +1,88 @@
+import pandas as pd
+import numpy as np
+
+# Function to handle missing values
+def handle_missing_values(df, strategy='mean'):
+    """
+    Handle missing values based on a chosen strategy.
+    :param df: DataFrame
+    :param strategy: 'mean', 'median', 'mode' or 'drop'
+    :return: DataFrame with handled missing values
+    """
+    if strategy == 'mean':
+        df.fillna(df.mean(), inplace=True)
+    elif strategy == 'median':
+        df.fillna(df.median(), inplace=True)
+    elif strategy == 'mode':
+        df.fillna(df.mode().iloc[0], inplace=True)
+    elif strategy == 'drop':
+        df.dropna(inplace=True)
+    else:
+        raise ValueError("Strategy must be 'mean', 'median', 'mode' or 'drop'.")
+    return df
+
+# Function to remove duplicate rows
+def remove_duplicates(df):
+    """
+    Remove duplicate rows from the DataFrame.
+    :param df: DataFrame
+    :return: DataFrame without duplicates
+    """
+    df.drop_duplicates(inplace=True)
+    return df
+
+# Function to detect and remove outliers using Z-score
+def remove_outliers(df, threshold=3):
+    """
+    Remove outliers based on Z-score method.
+    :param df: DataFrame
+    :param threshold: Z-score value above which a data point is considered an outlier
+    :return: DataFrame without outliers
+    """
+    from scipy import stats
+    z_scores = np.abs(stats.zscore(df.select_dtypes(include=[np.number])))
+    df_no_outliers = df[(z_scores < threshold).all(axis=1)]
+    return df_no_outliers
+
+# Function to clean and preprocess the data
+def clean_data(df, missing_value_strategy='mean', outlier_threshold=3):
+    """
+    Clean the dataset by handling missing values, removing duplicates and outliers.
+    :param df: DataFrame
+    :param missing_value_strategy: Strategy to handle missing values ('mean', 'median', 'mode', 'drop')
+    :param outlier_threshold: Threshold for outlier detection using Z-score
+    :return: Cleaned DataFrame
+    """
+    print("Handling missing values...")
+    df = handle_missing_values(df, strategy=missing_value_strategy)
+    
+    print("Removing duplicates...")
+    df = remove_duplicates(df)
+    
+    print("Removing outliers...")
+    df = remove_outliers(df, threshold=outlier_threshold)
+    
+    print("Data cleaning completed.")
+    return df
+
+# Function to save cleaned data
+def save_cleaned_data(df, filename):
+    """
+    Save the cleaned DataFrame to a CSV file.
+    :param df: DataFrame
+    :param filename: Output filename (CSV format)
+    """
+    df.to_csv(filename, index=False)
+    print(f"Cleaned data saved as {filename}")
+
+# Example usage
+if __name__ == "__main__":
+    # Load the dataset (Replace 'your_dataset.csv' with your actual file)
+    df = pd.read_csv('your_dataset.csv')
+    
+    # Clean the data (you can customize missing value strategy and outlier threshold)
+    cleaned_df = clean_data(df, missing_value_strategy='mean', outlier_threshold=3)
+    
+    # Save the cleaned data
+    save_cleaned_data(cleaned_df, 'cleaned_dataset.csv')
 
